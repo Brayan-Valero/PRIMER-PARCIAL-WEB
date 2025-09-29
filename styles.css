@@ -1,0 +1,111 @@
+/* Reset para evitar problemas con márgenes y padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Estilo global */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Contenedor principal de login */
+.login-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+}
+
+/* Contenedor para la imagen (logo) */
+.logo-container {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center; /* Centra la imagen */
+}
+
+/* Ajustar el tamaño de la imagen */
+.logo {
+    width: 120px;  /* Ajusta el tamaño de la imagen según lo que necesites */
+    height: auto;   /* Mantiene la proporción */
+    object-fit: contain; /* Asegura que la imagen no se deforme, pero llena el espacio */
+}
+
+/* Título principal */
+.login-container h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Estilo de los labels */
+label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+/* Estilo de los inputs */
+input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #D31024;
+}
+
+/* Estilo del botón */
+button {
+    background-color: #D31024;
+    color: white;
+    font-size: 16px;
+    height: 32px;
+    width: 215px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #a5101c;
+}
+
+/* Estilo de mensaje de error */
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+/* Asegurarse de que el diseño sea responsivo */
+@media (max-width: 600px) {
+    .login-container {
+        padding: 20px;
+        width: 90%;
+    }
+
+    button {
+        width: 100%;
+    }
+}
+
+

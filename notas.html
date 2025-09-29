@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notas - Universidad Francisco de Paula Santander</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Bienvenido a tu panel de Notas</h1>
+            <button id="logoutButton">Cerrar Sesión</button>
+        </header>
+
+        <section id="studentInfo">
+            <h2>Información del Estudiante</h2>
+            <p><strong>Código:</strong> <span id="codigo"></span></p>
+            <p><strong>Nombre:</strong> <span id="nombre"></span></p>
+            <p><strong>Promedio Ponderado:</strong> <span id="promedio"></span></p>
+        </section>
+
+        <section id="notesTable">
+            <h2>Notas por Asignatura</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Asignatura</th>
+                        <th>Créditos</th>
+                        <th>P1</th>
+                        <th>P2</th>
+                        <th>P3</th>
+                        <th>EF</th>
+                        <th>Definitiva</th>
+                    </tr>
+                </thead>
+                <tbody id="notesBody">
+                    <!-- Las notas se cargarán aquí -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // 1. Verificar si el usuario está autenticado
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            // Si no está autenticado, redirigir al login
+            window.location.href = 'index.html';
+        }
+
+        // Mostrar los datos del estudiante
+        document.getElementById('codigo').textContent = user.codigo;
+        document.getElementById('nombre').textContent = user.nombre;
+
+        // 2. Obtener las notas del estudiante desde la API
+        fetch(`https://24a0dac0-2579-4138-985c-bec2df4bdfcc-00-3unzo70c406dl.riker.replit.dev/students/${user.codigo}/notas`)
+            .then(response => response.json())
+            .then(data => {
+                // 3. Calcular las definitivas y el promedio ponderado
+                let totalDefinitiva = 0;
+                let totalCreditos = 0;
+                let notesBody = document.getElementById('notesBody');
+
+                data.forEach((asignatura) => {
+                    // Calcular la nota definitiva
+                    const { p1, p2, p3, ef, creditos } = asignatura;
+                    const definitiva = ((p1 + p2 + p3) / 3) * 0.7 + ef * 0.3;
+
+                    // Agregar los datos de la asignatura a la tabla
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${asignatura.nombre}</td>
+                        <td>${creditos}</td>
+                        <td>${p1}</td>
+                        <td>${p2}</td>
+                        <td>${p3}</td>
+                        <td>${ef}</td>
+                        <td>${definitiva.toFixed(2)}</td>
+                    `;
+                    notesBody.appendChild(row);
+
+                    // Calcular el promedio ponderado
+                    totalDefinitiva += definitiva * creditos;
+                    totalCreditos += creditos;
+                });
+
+                // Calcular el promedio ponderado
+                const promedioPonderado = (totalDefinitiva / totalCreditos).toFixed(2);
+                document.getElementById('promedio').textContent = promedioPonderado;
+            })
+            .catch(error => {
+                console.error('Error al cargar las notas:', error);
+                document.getElementById('errorMessage').textContent = 'Hubo un error al cargar las notas.';
+            });
+
+        // 4. Cerrar sesión
+        document.getElementById('logoutButton').addEventListener('click', function() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
+
+
