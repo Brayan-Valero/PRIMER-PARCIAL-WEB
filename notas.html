@@ -5,6 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Notas del Estudiante</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Estilos específicos para notas.html: moderna tarjeta y tabla responsive */
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --accent:#5b6cff;
+      --muted:#6b7280;
+      --success:#10b981;
+      --danger:#ef4444;
+    }
+    html,body{height:100%;}
+    /* Asegurar que las reglas de layout de la hoja global no recorten esta página */
+    body{
+      display: block; /* anula el display:flex de css/style.css que centra y puede recortar contenido */
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 60%);
+      color:#111827;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:32px 16px 48px 16px;
+    }
+    .container{
+      max-width:1100px;
+      margin:0 auto;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+    }
+    .card{
+      width:100%;
+      max-width:1100px; /* permitir una tarjeta ancha para la tabla */
+      background:var(--card);
+      border-radius:12px;
+      box-shadow:0 10px 30px rgba(16,24,40,0.08);
+      padding:28px;
+      box-sizing:border-box;
+      overflow: visible; /* evitar que contenido quede oculto */
+    }
+    .card h2{
+      margin:0 0 8px 0;
+      font-size:20px;
+      color:#0f172a;
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    #userInfo{color:var(--muted);margin-bottom:12px}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    thead th{
+      text-align:left;padding:12px 10px;font-size:13px;color:var(--muted);font-weight:600;border-bottom:1px solid #eef2ff;background:linear-gradient(180deg, rgba(91,108,255,0.04), transparent);
+    }
+    tbody td{
+      padding:12px 10px;border-bottom:1px solid #f1f5f9;font-size:14px;vertical-align:middle;color:#111827
+    }
+    tbody tr:nth-child(even){background:rgba(99,102,241,0.02)}
+    .badge{
+      display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px;color:#fff;
+      min-width:54px;text-align:center;box-shadow:0 2px 6px rgba(15,23,42,0.06)
+    }
+    .nota-alta .badge{background:var(--success)}
+    .nota-baja .badge{background:var(--danger)}
+    #promedio{margin-top:16px;font-weight:700;color:#0f172a}
+    #logoutBtn{
+      margin-top:18px;padding:10px 14px;border-radius:8px;border:0;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;
+      box-shadow:0 6px 18px rgba(91,108,255,0.14)
+    }
+    #logoutBtn:hover{transform:translateY(-1px);filter:brightness(1.02)}
+    @media (max-width:720px){
+      .card{padding:18px}
+      thead th, tbody td{padding:10px 6px;font-size:13px}
+      .badge{min-width:44px;padding:5px 8px;font-size:12px}
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -31,6 +105,66 @@
   </div>
   <script src="js/api.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    // Script que aplica color a la columna "Definitiva" cuando su valor es > 3 (verde) o <= 3 (rojo).
+    (function(){
+      const tbody = document.querySelector('#notasTable tbody');
+      if(!tbody) return;
+
+      function parseNota(text){
+        if(!text) return NaN;
+        // Quitar espacios y reemplazar coma por punto
+        const n = text.toString().trim().replace(',', '.').replace(/[^0-9.\-]/g,'');
+        return parseFloat(n);
+      }
+
+      function colorearNotas(){
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.forEach(row=>{
+          const cells = row.querySelectorAll('td');
+          if(cells.length < 7) return; // estructura diferente
+          const defCell = cells[6];
+          const raw = defCell.textContent || defCell.innerText || '';
+          const val = parseNota(raw);
+          // limpiar contenido y poner badge
+          const text = isNaN(val) ? raw.trim() : (Number.isInteger(val) ? val.toString() : val.toFixed(2));
+          const span = document.createElement('span');
+          span.className = 'badge';
+          span.textContent = text;
+          // quitar contenido previo
+          defCell.innerHTML = '';
+          defCell.appendChild(span);
+          // aplicar clases a la celda/ fila
+          row.classList.remove('nota-alta','nota-baja');
+          defCell.classList.remove('nota-alta','nota-baja');
+          if(!isNaN(val)){
+            if(val > 3) { defCell.classList.add('nota-alta'); row.classList.add('nota-alta'); }
+            else { defCell.classList.add('nota-baja'); row.classList.add('nota-baja'); }
+          }
+        });
+      }
+
+      // Ejecutar una vez al cargar
+      document.addEventListener('DOMContentLoaded', ()=>{
+        // Si la tabla ya tiene filas (por ejemplo main.js las agregó en carga), colorear
+        colorearNotas();
+      });
+
+      // También observar cambios en el tbody para colorear filas que se agreguen dinámicamente
+      const mo = new MutationObserver((mutations)=>{
+        let changed=false;
+        for(const m of mutations){ if(m.addedNodes && m.addedNodes.length) { changed=true; break; } }
+        if(changed) colorearNotas();
+      });
+      mo.observe(tbody, { childList:true, subtree:false });
+
+      // Por si main.js carga datos después sin disparar DOMContentLoaded
+      // intentar colorear cada 500ms durante los primeros 3 segundos
+      let attempts=0; const maxAttempts=6; const interval = setInterval(()=>{
+        colorearNotas(); attempts++; if(attempts>=maxAttempts) clearInterval(interval);
+      },500);
+    })();
+  </script>
 </body>
 </html>
 
